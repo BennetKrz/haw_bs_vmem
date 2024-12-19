@@ -335,8 +335,7 @@ public class OperatingSystem {
      * @return Die entsprechende virtuelle Seitennummer
      */
     private int getVirtualPageNum(int virtAdr) {
-        // ToDo
-        throw new RuntimeException("Nicht implementiert");
+        return (int) Math.floor((double) virtAdr / getPAGE_SIZE());
     }
 
     /**
