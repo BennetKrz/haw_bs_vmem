@@ -316,8 +316,64 @@ public class OperatingSystem {
      * Zugriffsfehler
      */
     public synchronized int read(int pid, int virtAdr) {
-        // ToDo
-        throw new RuntimeException("Nicht implementiert");
+        int virtualPageNum; // Virtuelle Seitennummer
+        int offset; // Offset innerhalb der Seite
+        int realAddressToReadFrom; // Reale Adresse des Datenworts
+        Process proc; // Aktuelles Prozessobjekt
+        PageTableEntry pte; // Eintrag für die zu schreibende Seite
+
+        // Übergebene Adresse prüfen
+        if ((virtAdr < 0) || (virtAdr > VIRT_ADR_SPACE - WORD_SIZE)) {
+            System.err.println("OS: read ERROR " + pid + ": Adresse "
+                    + virtAdr
+                    + " liegt außerhalb des virtuellen Adressraums 0 - "
+                    + VIRT_ADR_SPACE);
+            return -1;
+        }
+
+        // Seitenadresse berechnen
+        virtualPageNum = getVirtualPageNum(virtAdr);
+        offset = getOffset(virtAdr);
+        testOut("OS: read " + pid + " " + virtAdr
+                + " +++ Seitennr.: " + virtualPageNum + " Offset: " + offset);
+
+        // Seite in Seitentabelle referenzieren
+        proc = getProcess(pid);
+        pte = proc.pageTable.getPte(virtualPageNum);
+        if (pte == null) {
+            // Seite nicht vorhanden:
+            // Frage: Soll nun bei Lesevorgang von einer uninitialisierten Adresse ein SegFault
+            // auftreten, oder eine neue Seite erstellt werden
+            testOut("OS: read " + pid + " +++ Seitennr.: " + virtualPageNum
+                    + " in Seitentabelle nicht vorhanden");
+            pte = new PageTableEntry();
+            pte.virtPageNum = virtualPageNum;
+            // Seitenrahmen im RAM für die neue Seite anfordern und reale
+            // (RAM-)SeitenAdresse eintragen
+            pte.realPageFrameAdr = getNewRAMPage(pte, pid);
+            pte.valid = true;
+            // neue Seite in Seitentabelle eintragen
+            proc.pageTable.addEntry(pte);
+            testOut("OS: read " + pid + " Neue Seite " + virtualPageNum
+                    + " in Seitentabelle eingetragen! RAM-Adr.: "
+                    + pte.realPageFrameAdr);
+        } else {
+            // Seite vorhanden: Seite valid (im RAM)?
+            if (!pte.valid) {
+                // Seite nicht valid (also auf Platte --> Seitenfehler):
+                pte = handlePageFault(pte, pid);
+            }
+        }
+        // ------ Zustand: Seite ist in Seitentabelle und im RAM vorhanden
+
+        realAddressToReadFrom = pte.realPageFrameAdr + offset;
+        int r1 = readFromRAM(realAddressToReadFrom);
+        int r2 = readFromRAM(realAddressToReadFrom + 1);
+        int r3 = readFromRAM(realAddressToReadFrom + 2);
+        int r4 = readFromRAM(realAddressToReadFrom + 3);
+
+        // Ist der Ram hier Little/Big-Endian?
+        return (r1 << 24) + (r2 << 16) + (r3 << 8) + r4;
     }
 
     // --------------- Private Methoden des Betriebssystems
