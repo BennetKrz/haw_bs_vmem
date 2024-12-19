@@ -343,8 +343,7 @@ public class OperatingSystem {
      * @return Den entsprechenden Offset zur Berechnung der realen Adresse
      */
     private int getOffset(int virtAdr) {
-        // ToDo
-        throw new RuntimeException("Nicht implementiert");
+        return virtAdr % getPAGE_SIZE();
     }
 
     /**
