@@ -2,6 +2,7 @@ package de.hawhh.osbsp;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.Random;
 
 /**
  * Eine Seitentabelle eines Prozesses, implementiert als ArrayList von
@@ -132,9 +133,16 @@ public class PageTable {
      * RANDOM-Algorithmus: Zufällige Auswahl
      */
     private PageTableEntry randomAlgorithm(PageTableEntry newPte) {
-        // ToDo
-        throw new RuntimeException("Nicht implementiert");
-        //return pte;
+        int ramPteListReplaceIndex = new Random().nextInt(pteRAMlist.size());
+        PageTableEntry pte = pteRAMlist.get(ramPteListReplaceIndex);
+
+        os.testOut("Prozess " + pid + ": Random-Algorithmus hat pte ausgewählt: "
+                + pte.virtPageNum);
+
+        pteRAMlist.remove(pte);
+        pteRAMlist.add(newPte);
+
+        return pte;
     }
 
     // ----------------------- Hilfsmethode --------------------------------
