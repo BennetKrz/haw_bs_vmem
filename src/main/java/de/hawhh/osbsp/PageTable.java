@@ -15,12 +15,12 @@ public class PageTable {
      * Die Seitentabelle als ArrayList von Seitentabelleneinträgen
      * (PageTableEntry). Die Seitentabelle darf nicht sortiert werden!
      */
-    private ArrayList<PageTableEntry> pageTable;
+    private final ArrayList<PageTableEntry> pageTable;
 
     /**
      * Liste aller Seiten, die sich im RAM befinden
      */
-    private LinkedList<PageTableEntry> pteRAMlist;
+    private final LinkedList<PageTableEntry> pteRAMlist;
 
     /**
      * Uhrzeiger für Clock-Algorithmus
@@ -30,12 +30,12 @@ public class PageTable {
     /**
      * Zeiger auf das Betriebssystem-Objekt
      */
-    private OperatingSystem os;
+    private final OperatingSystem os;
 
     /**
      * Prozess-ID des eigenen Prozesses
      */
-    private int pid;
+    private final int pid;
 
     /**
      * Konstruktor
