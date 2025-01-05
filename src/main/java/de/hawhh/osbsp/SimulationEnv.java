@@ -1,6 +1,7 @@
 package de.hawhh.osbsp;
 
 import java.io.IOException;
+import java.sql.SQLOutput;
 
 /**
  * Simulation eines Hauptspeicherverwaltungssystems auf Basis eines "virtuellen
@@ -32,6 +33,15 @@ public class SimulationEnv {
      * @throws java.io.IOException
      */
     public static void main(String[] args) throws IOException {
+        int maxRamPagesPerProcess = 20;
+        int localityFactor = 10;
+        ExecuteTest(maxRamPagesPerProcess, OperatingSystem.ImplementedReplacementAlgorithms.RANDOM, localityFactor);
+        ExecuteTest(maxRamPagesPerProcess, OperatingSystem.ImplementedReplacementAlgorithms.CLOCK, localityFactor);
+        ExecuteTest(maxRamPagesPerProcess, OperatingSystem.ImplementedReplacementAlgorithms.FIFO, localityFactor);
+    }
+
+    private static void ExecuteTest(int maxRamPagesPerProcess, OperatingSystem.ImplementedReplacementAlgorithms algorithm,
+                                    int defaultLocalityFactor) throws IOException {
         int pid; // Aktuelle Prozess-ID
 
         Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
@@ -47,15 +57,15 @@ public class SimulationEnv {
         simulationTime = 200;
         // max. Anzahl Seiten pro Prozess im Hauptspeicher (sonst Verdr�ngung
         // eigener Seiten)
-        os.setMAX_RAM_PAGES_PER_PROCESS(10);
+        os.setMAX_RAM_PAGES_PER_PROCESS(maxRamPagesPerProcess);
         // CLOCK oder FIFO oder RANDOM
-        os.setREPLACEMENT_ALGORITHM(OperatingSystem.ImplementedReplacementAlgorithms.FIFO);
+        os.setREPLACEMENT_ALGORITHM(algorithm);
         // Anzahl Operationen innerhalb eines Seitenbereichs
-        os.setDEFAULT_LOCALITY_FACTOR(1);
+        os.setDEFAULT_LOCALITY_FACTOR(defaultLocalityFactor);
 
         // Testausgaben erwünscht? Wenn true, dann simulationTime auf max. 200
         // ms setzen!
-        os.setTestMode(true);
+        os.setTestMode(false);
 
         // ------------------------- Parameter setzen Ende
         // -----------------------------------------------
@@ -81,6 +91,7 @@ public class SimulationEnv {
         System.out
                 .println("*********** Simulation der Betriebssystem-Speicherverwaltung wurde nach "
                         + simulationTime + " ms beendet *************");
+        System.out.println("Seitenersetzungsstrategie: " + algorithm);
 
         // Statistische Auswertung anzeigen
         os.eventLog.showReport();

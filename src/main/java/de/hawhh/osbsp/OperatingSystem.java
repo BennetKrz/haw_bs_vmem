@@ -340,40 +340,24 @@ public class OperatingSystem {
         // Seite in Seitentabelle referenzieren
         proc = getProcess(pid);
         pte = proc.pageTable.getPte(virtualPageNum);
-        if (pte == null) {
-            // Seite nicht vorhanden:
-            // Frage: Soll nun bei Lesevorgang von einer uninitialisierten Adresse ein SegFault
-            // auftreten, oder eine neue Seite erstellt werden
-            testOut("OS: read " + pid + " +++ Seitennr.: " + virtualPageNum
-                    + " in Seitentabelle nicht vorhanden");
-            pte = new PageTableEntry();
-            pte.virtPageNum = virtualPageNum;
-            // Seitenrahmen im RAM für die neue Seite anfordern und reale
-            // (RAM-)SeitenAdresse eintragen
-            pte.realPageFrameAdr = getNewRAMPage(pte, pid);
-            pte.valid = true;
-            // neue Seite in Seitentabelle eintragen
-            proc.pageTable.addEntry(pte);
-            testOut("OS: read " + pid + " Neue Seite " + virtualPageNum
-                    + " in Seitentabelle eingetragen! RAM-Adr.: "
-                    + pte.realPageFrameAdr);
-        } else {
-            // Seite vorhanden: Seite valid (im RAM)?
-            if (!pte.valid) {
-                // Seite nicht valid (also auf Platte --> Seitenfehler):
-                pte = handlePageFault(pte, pid);
-            }
+
+        if(pte == null){
+            throw new RuntimeException("Segmentation fault! Tried to read " + virtAdr +
+                    " but no memory was allocated at this address.");
+        }
+
+        // Seite vorhanden: Seite valid (im RAM)?
+        if (!pte.valid) {
+            // Seite nicht valid (also auf Platte --> Seitenfehler):
+            pte = handlePageFault(pte, pid);
         }
         // ------ Zustand: Seite ist in Seitentabelle und im RAM vorhanden
 
         realAddressToReadFrom = pte.realPageFrameAdr + offset;
-        int r1 = readFromRAM(realAddressToReadFrom);
-        int r2 = readFromRAM(realAddressToReadFrom + 1);
-        int r3 = readFromRAM(realAddressToReadFrom + 2);
-        int r4 = readFromRAM(realAddressToReadFrom + 3);
 
-        // Ist der Ram hier Little/Big-Endian?
-        return (r1 << 24) + (r2 << 16) + (r3 << 8) + r4;
+        eventLog.incrementReadAccesses();
+
+        return readFromRAM(realAddressToReadFrom);
     }
 
     // --------------- Private Methoden des Betriebssystems

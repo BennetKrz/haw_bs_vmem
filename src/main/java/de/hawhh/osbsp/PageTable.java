@@ -120,13 +120,30 @@ public class PageTable {
 
     /**
      * CLOCK-Algorithmus (Second-Chance): Nächstes Listenelement, ausgehend vom
-     * aktuellen Index, mit Referenced-Bit = 0 (false) auswählen Sonst R-Bit auf
+     * aktuellen Index, mit Referenced-Bit = 0 (false) auswählen. Sonst R-Bit auf
      * 0 setzen und nächstes Element in der pteRAMlist untersuchen. Anschließend
      * die ausgewählte Seite durch die neue Seite (newPte) am selben Listenplatz
      * ersetzen
      */
     private PageTableEntry clockAlgorithm(PageTableEntry newPte) {
-        throw new RuntimeException("Nicht implementiert");
+        int i;
+        for(i = pteRAMlistIndex; i < pteRAMlist.size() && pteRAMlist.get(i).referenced; i++) {
+            PageTableEntry pte = pteRAMlist.get(i);
+            pte.referenced = false;
+
+            if(i == pteRAMlist.size() - 1) {
+                i = 0;
+            }
+        }
+
+        PageTableEntry pteFound = pteRAMlist.get(i);
+        os.testOut("Prozess " + pid + ": Clock-Algorithmus hat pte ausgewählt: "
+                + pteFound.virtPageNum);
+
+        pteRAMlist.remove(pteFound);
+        pteRAMlist.add(newPte);
+
+        return pteFound;
     }
 
     /**
